@@ -1,6 +1,6 @@
 package com.service.order.model;
 
-public enum Status {
+public enum OrderStatus {
     CREATED,
     PROCESSING,
     COMPLETED,
