@@ -16,21 +16,27 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "orders")
+@Table(name = "orders",
+        indexes = {
+        @Index(name = "idx_orders_status", columnList = "status"),
+        @Index(name = "idx_orders_customer_name", columnList = "customer_name"),
+        @Index(name = "idx_orders_order_date", columnList = "order_date"),
+        @Index(name = "idx_orders_status_date", columnList = "status, order_date")}
+)
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(name = "customer_name", nullable = false)
     private String customerName;
 
-    @Column
+    @Column(name = "order_date", nullable = false)
     private LocalDateTime orderDate;
 
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private OrderStatus orderStatus;
+    @Column(nullable = false)
+    private OrderStatus status;
 
     @OneToMany(mappedBy = "order")
     private List<OrderItem> items = new ArrayList<>();

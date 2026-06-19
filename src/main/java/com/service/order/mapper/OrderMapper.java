@@ -30,7 +30,7 @@ public class OrderMapper {
         Order order = Order.builder()
                 .customerName(dto.customerName())
                 .orderDate(LocalDateTime.now())
-                .orderStatus(OrderStatus.CREATED)
+                .status(OrderStatus.CREATED)
                 .items(items)
                 .build();
 
@@ -44,7 +44,7 @@ public class OrderMapper {
                 .id(order.getId())
                 .customerName(order.getCustomerName())
                 .orderDate(order.getOrderDate())
-                .status(order.getOrderStatus())
+                .status(order.getStatus())
                 .totalAmount(calculateTotal(order))
                 .items(order.getItems().stream()
                         .map(this::toItemResponse)

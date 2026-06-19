@@ -61,7 +61,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderResponse updateStatus(UUID id, UpdateStatusRequest request) {
         Order order = findOrderById(id);
-        order.setOrderStatus(request.status());
+        order.setStatus(request.status());
 
         Order updatedOrder = orderRepository.save(order);
 
