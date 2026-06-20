@@ -5,6 +5,8 @@ import com.service.order.dto.request.UpdateStatusRequest;
 import com.service.order.dto.response.OrderResponse;
 import com.service.order.exception.OrderNotFoundException;
 import com.service.order.mapper.OrderMapper;
+import com.service.order.messaging.OrderMessageProducer;
+import com.service.order.messaging.message.OrderCreatedMessage;
 import com.service.order.model.Order;
 import com.service.order.model.OrderStatus;
 import com.service.order.repository.OrderRepository;
@@ -16,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Service
@@ -24,6 +27,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
+    private final OrderMessageProducer messageProducer;
 
     @Override
     @Transactional
@@ -31,6 +35,14 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder  = orderMapper.toEntity(request);
         orderRepository.save(savedOrder);
+
+        OrderCreatedMessage message = OrderCreatedMessage.builder()
+                .orderId(savedOrder.getId())
+                .customerName(savedOrder.getCustomerName())
+                .totalAmount(calculateTotalAmount(savedOrder))
+                .build();
+
+        messageProducer.sendOrderCreatedMessage(message);
 
         return orderMapper.toResponse(savedOrder);
     }
@@ -71,5 +83,11 @@ public class OrderServiceImpl implements OrderService {
     private Order findOrderById(UUID id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + id));
+    }
+
+    private BigDecimal calculateTotalAmount(Order order) {
+        return order.getItems().stream()
+                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
